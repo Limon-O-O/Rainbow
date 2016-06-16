@@ -41,6 +41,26 @@ extension UIViewController {
         }
     }
 
+    var crate: Crate {
+        get {
+            if let result:Crate = getAssociatedObject(self, associativeKey: &AssociatedKey.transitionNavigationBar) {
+                return result
+            } else {
+                let result = Crate(name: "")
+                self.crate = result
+                return result
+            }
+        }
+
+        set {
+            setAssociatedObject(self, value: newValue, associativeKey: &AssociatedKey.transitionNavigationBar, policy: objc_AssociationPolicy.OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+        }
+    }
+
+}
+
+struct Crate {
+    var name: String
 }
 
 final class Lifted<T> {

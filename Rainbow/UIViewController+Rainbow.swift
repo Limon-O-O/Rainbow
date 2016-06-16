@@ -15,29 +15,25 @@ extension UIViewController {
         static var transitionNavigationBar: UInt8 = 0
     }
 
-    var rabinbow_prefersNavigationBarBackgroundViewHidden: Bool? {
+    var rainbow_prefersNavigationBarBackgroundViewHidden: Bool? {
 
         get {
-            return getAssociatedObject(self, associativeKey: &AssociatedKey.backgroundViewHidden)
+            return objc_getAssociatedObject(self, &AssociatedKey.backgroundViewHidden) as? Bool
         }
 
         set {
-            if let value = newValue {
-                setAssociatedObject(self, value: value, associativeKey: &AssociatedKey.backgroundViewHidden, policy: objc_AssociationPolicy.OBJC_ASSOCIATION_RETAIN_NONATOMIC)
-            }
+            objc_setAssociatedObject(self, &AssociatedKey.backgroundViewHidden, newValue,  .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
         }
     }
 
-    var rabinbow_transitionNavigationBar: UINavigationBar? {
+    var rainbow_transitionNavigationBar: UINavigationBar? {
 
         get {
-            return getAssociatedObject(self, associativeKey: &AssociatedKey.transitionNavigationBar)
+            return objc_getAssociatedObject(self, &AssociatedKey.transitionNavigationBar) as? UINavigationBar
         }
 
         set {
-            if let value = newValue {
-                setAssociatedObject(self, value: value, associativeKey: &AssociatedKey.transitionNavigationBar, policy: objc_AssociationPolicy.OBJC_ASSOCIATION_RETAIN_NONATOMIC)
-            }
+            objc_setAssociatedObject(self, &AssociatedKey.transitionNavigationBar, newValue,  .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
         }
     }
 
@@ -48,67 +44,83 @@ extension UIViewController {
         }
 
         dispatch_once(&Static.token) {
-            exchangeMethods(self, originalSelector: #selector(UIViewController.viewWillLayoutSubviews), swizzledSelector: #selector(UIViewController.rabinbow_viewWillLayoutSubviews))
-            exchangeMethods(self, originalSelector: #selector(UIViewController.viewDidAppear(_:)), swizzledSelector: #selector(UIViewController.rabinbow_viewDidAppear(_:)))
+            exchangeMethods(self, originalSelector: #selector(UIViewController.viewWillLayoutSubviews), swizzledSelector: #selector(UIViewController.rainbow_viewWillLayoutSubviews))
+            exchangeMethods(self, originalSelector: #selector(UIViewController.viewDidAppear(_:)), swizzledSelector: #selector(UIViewController.rainbow_viewDidAppear(_:)))
         }
     }
 
-    func rabinbow_viewDidAppear(animated: Bool) {
-        self.rabinbow_viewDidAppear(animated)
-
-    }
-
-    func rabinbow_viewWillLayoutSubviews() {
+    func rainbow_viewDidAppear(animated: Bool) {
 
 
-        guard let navigationController = navigationController, transitionCoordinator = transitionCoordinator() else { return }
-
-        guard let fromViewController = transitionCoordinator.viewControllerForKey(UITransitionContextFromViewControllerKey),
-                    toViewController = transitionCoordinator.viewControllerForKey(UITransitionContextToViewControllerKey) else { return }
-
-        guard let lastViewController = navigationController.viewControllers.last where self == lastViewController && toViewController == self else { return }
-
-
-        if navigationController.navigationBar.translucent {
-//            transitionCoordinator.containerView().backgroundColor = navigationController
+        if let transitionNavigationBar = rainbow_transitionNavigationBar {
+            navigationController?.navigationBar.barTintColor = rainbow_transitionNavigationBar?.barTintColor
+            navigationController?.navigationBar.setBackgroundImage(transitionNavigationBar.backgroundImageForBarMetrics(.Default), forBarMetrics: .Default)
+            navigationController?.navigationBar.shadowImage = transitionNavigationBar.shadowImage
+//            if let transitionViewController = navigationController?.
         }
 
-//        if ([self isEqual:self.navigationController.viewControllers.lastObject] && [toViewController isEqual:self]) {
-//
-//            if (self.navigationController.navigationBar.translucent) {
-//                [tc containerView].backgroundColor = [self.navigationController km_containerViewBackgroundColor];
-//            }
-//            fromViewController.view.clipsToBounds = NO;
-//            toViewController.view.clipsToBounds = NO;
-//            if (!self.km_transitionNavigationBar) {
-//                [self km_addTransitionNavigationBarIfNeeded];
-//
-//                self.km_prefersNavigationBarBackgroundViewHidden = YES;
-//            }
-//            [self km_resizeTransitionNavigationBarFrame];
-//        }
+
 //        if (self.km_transitionNavigationBar) {
-//            [self.view bringSubviewToFront:self.km_transitionNavigationBar];
+//
+//            self.navigationController.navigationBar.barTintColor = self.km_transitionNavigationBar.barTintColor;
+//
+//            [self.navigationController.navigationBar setBackgroundImage:[self.km_transitionNavigationBar backgroundImageForBarMetrics:UIBarMetricsDefault] forBarMetrics:UIBarMetricsDefault];
+//
+//            [self.navigationController.navigationBar setShadowImage:self.km_transitionNavigationBar.shadowImage];
+//
+//            UIViewController *transitionViewController = self.navigationController.km_transitionContextToViewController;
+//            if (!transitionViewController || [transitionViewController isEqual:self]) {
+//                [self.km_transitionNavigationBar removeFromSuperview];
+//                self.km_transitionNavigationBar = nil;
+//                self.navigationController.km_transitionContextToViewController = nil;
+//            }
 //        }
-//        [self km_viewWillLayoutSubviews];
+//        self.km_prefersNavigationBarBackgroundViewHidden = NO;
+//        [self km_viewDidAppear:animated];
 
 
-
-        rabinbow_viewWillLayoutSubviews()
+        self.rainbow_viewDidAppear(animated)
 
     }
 
+    func rainbow_viewWillLayoutSubviews() {
 
-    func rabinbow_resizeTransitionNavigationBarFrame() {
+        if let navigationController = navigationController, transitionCoordinator = transitionCoordinator(), fromViewController = transitionCoordinator.viewControllerForKey(UITransitionContextFromViewControllerKey),
+            toViewController = transitionCoordinator.viewControllerForKey(UITransitionContextToViewControllerKey), lastViewController = navigationController.viewControllers.last where self == lastViewController && toViewController == self {
+
+            if navigationController.navigationBar.translucent {
+                transitionCoordinator.containerView().backgroundColor = navigationController.rainbow_containerViewBackgroundColor
+            }
+
+            fromViewController.view.clipsToBounds = false
+            toViewController.view.clipsToBounds = false
+
+            if rainbow_transitionNavigationBar == nil {
+                rainbow_addTransitionNavigationBarIfNeeded()
+                rainbow_prefersNavigationBarBackgroundViewHidden = true
+            }
+
+            rainbow_resizeTransitionNavigationBarFrame()
+        }
+
+        if let transitionNavigationBar = rainbow_transitionNavigationBar {
+            view.bringSubviewToFront(transitionNavigationBar)
+        }
+
+        rainbow_viewWillLayoutSubviews()
+    }
+
+
+    func rainbow_resizeTransitionNavigationBarFrame() {
 
         guard let navigationController = navigationController where view.window != nil else { return }
 
         guard let backgroundView = navigationController.navigationBar.valueForKey("_backgroundView") as? UIView, rect = backgroundView.superview?.convertRect(backgroundView.frame, toView: view)  else { return }
 
-        rabinbow_transitionNavigationBar?.frame = rect
+        rainbow_transitionNavigationBar?.frame = rect
     }
 
-    func rabinbow_addTransitionNavigationBarIfNeeded() {
+    func rainbow_addTransitionNavigationBarIfNeeded() {
 
         guard let navigationController = navigationController where view.window != nil else { return }
 
@@ -124,10 +136,10 @@ extension UIViewController {
         bar.setBackgroundImage(navigationController.navigationBar.backgroundImageForBarMetrics(.Default), forBarMetrics: .Default)
         bar.shadowImage = navigationController.navigationBar.shadowImage
 
-        rabinbow_transitionNavigationBar?.removeFromSuperview()
-        rabinbow_transitionNavigationBar = bar
+        rainbow_transitionNavigationBar?.removeFromSuperview()
+        rainbow_transitionNavigationBar = bar
 
-        rabinbow_resizeTransitionNavigationBarFrame()
+        rainbow_resizeTransitionNavigationBarFrame()
 
         if !navigationController.navigationBar.hidden && !navigationController.navigationBarHidden {
             view.addSubview(bar)
@@ -136,36 +148,24 @@ extension UIViewController {
 
 }
 
-final class Lifted<T> {
-    let value: T
-    init(_ x: T) {
-        value = x
+final class WeakObjectWrapper<T: AnyObject> {
+    weak var value: T?
+    init(_ v: T) {
+        value = v
     }
 }
 
-private func lift<T>(x: T) -> Lifted<T>  {
-    return Lifted(x)
+private func wrap<T: AnyObject>(v: T) -> WeakObjectWrapper<T> {
+    return WeakObjectWrapper(v)
 }
 
-private func setAssociatedObject<T>(object: AnyObject, value: T, associativeKey: UnsafePointer<Void>, policy: objc_AssociationPolicy) {
-    if let v: AnyObject = value as? AnyObject {
-        objc_setAssociatedObject(object, associativeKey, v,  policy)
-    }
-    else {
-        objc_setAssociatedObject(object, associativeKey, lift(value),  policy)
-    }
+private func setAssociatedObject<T: AnyObject>(object: AnyObject, associativeKey: UnsafePointer<Void>, value: T, policy: objc_AssociationPolicy) {
+
+    objc_setAssociatedObject(object, associativeKey, wrap(value),  policy)
 }
 
-private func getAssociatedObject<T>(object: AnyObject, associativeKey: UnsafePointer<Void>) -> T? {
-    if let v = objc_getAssociatedObject(object, associativeKey) as? T {
-        return v
-    }
-    else if let v = objc_getAssociatedObject(object, associativeKey) as? Lifted<T> {
-        return v.value
-    }
-    else {
-        return nil
-    }
+private func getAssociatedObject<T: AnyObject>(object: AnyObject, associativeKey: UnsafePointer<Void>) -> T? {
+    return (objc_getAssociatedObject(object, associativeKey) as? WeakObjectWrapper<T>)?.value
 }
 
 
