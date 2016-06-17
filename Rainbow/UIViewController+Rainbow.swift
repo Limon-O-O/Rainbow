@@ -8,36 +8,48 @@
 
 import Foundation
 
+
+// MARK: Properties
+
 extension UIViewController {
 
-    private struct AssociatedKey {
+    private struct Rainbow_AssociatedKey {
         static var backgroundViewHidden: UInt8    = 0
         static var transitionNavigationBar: UInt8 = 0
     }
 
-    var rainbow_prefersNavigationBarBackgroundViewHidden: Bool? {
+    var rainbow_prefersNavigationBarBackgroundViewHidden: Bool {
 
         get {
-            return objc_getAssociatedObject(self, &AssociatedKey.backgroundViewHidden) as? Bool
+            return (objc_getAssociatedObject(self, &Rainbow_AssociatedKey.backgroundViewHidden) as? Bool) ?? false
         }
 
         set {
-            objc_setAssociatedObject(self, &AssociatedKey.backgroundViewHidden, newValue,  .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+
+            (navigationController?.navigationBar.valueForKey("_backgroundView") as? UIView)?.hidden = newValue
+
+            objc_setAssociatedObject(self, &Rainbow_AssociatedKey.backgroundViewHidden, newValue,  .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
         }
     }
 
     var rainbow_transitionNavigationBar: UINavigationBar? {
 
         get {
-            return objc_getAssociatedObject(self, &AssociatedKey.transitionNavigationBar) as? UINavigationBar
+            return objc_getAssociatedObject(self, &Rainbow_AssociatedKey.transitionNavigationBar) as? UINavigationBar
         }
 
         set {
-            objc_setAssociatedObject(self, &AssociatedKey.transitionNavigationBar, newValue,  .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+            objc_setAssociatedObject(self, &Rainbow_AssociatedKey.transitionNavigationBar, newValue,  .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
         }
     }
+}
 
-    override public static func initialize() {
+
+// MARK: Initializer
+
+extension UIViewController {
+
+    override public class func initialize() {
 
         struct Static {
             static var token: dispatch_once_t = 0;
@@ -48,39 +60,32 @@ extension UIViewController {
             exchangeMethods(self, originalSelector: #selector(UIViewController.viewDidAppear(_:)), swizzledSelector: #selector(UIViewController.rainbow_viewDidAppear(_:)))
         }
     }
+}
+
+
+// MARK: Life Cycle Methods
+
+extension UIViewController {
 
     func rainbow_viewDidAppear(animated: Bool) {
 
+        if let transitionNavigationBar = rainbow_transitionNavigationBar, navigationController = navigationController {
 
-        if let transitionNavigationBar = rainbow_transitionNavigationBar {
-            navigationController?.navigationBar.barTintColor = rainbow_transitionNavigationBar?.barTintColor
-            navigationController?.navigationBar.setBackgroundImage(transitionNavigationBar.backgroundImageForBarMetrics(.Default), forBarMetrics: .Default)
-            navigationController?.navigationBar.shadowImage = transitionNavigationBar.shadowImage
-//            if let transitionViewController = navigationController?.
+            navigationController.navigationBar.barTintColor = rainbow_transitionNavigationBar?.barTintColor
+            navigationController.navigationBar.setBackgroundImage(transitionNavigationBar.backgroundImageForBarMetrics(.Default), forBarMetrics: .Default)
+            navigationController.navigationBar.shadowImage = transitionNavigationBar.shadowImage
+
+            if navigationController.rainbow_transitionContextToViewController == nil || navigationController.rainbow_transitionContextToViewController == .Some(self) {
+                transitionNavigationBar.removeFromSuperview()
+                rainbow_transitionNavigationBar = nil
+                navigationController.rainbow_transitionContextToViewController = nil
+            }
+
         }
 
+        rainbow_prefersNavigationBarBackgroundViewHidden = false
 
-//        if (self.km_transitionNavigationBar) {
-//
-//            self.navigationController.navigationBar.barTintColor = self.km_transitionNavigationBar.barTintColor;
-//
-//            [self.navigationController.navigationBar setBackgroundImage:[self.km_transitionNavigationBar backgroundImageForBarMetrics:UIBarMetricsDefault] forBarMetrics:UIBarMetricsDefault];
-//
-//            [self.navigationController.navigationBar setShadowImage:self.km_transitionNavigationBar.shadowImage];
-//
-//            UIViewController *transitionViewController = self.navigationController.km_transitionContextToViewController;
-//            if (!transitionViewController || [transitionViewController isEqual:self]) {
-//                [self.km_transitionNavigationBar removeFromSuperview];
-//                self.km_transitionNavigationBar = nil;
-//                self.navigationController.km_transitionContextToViewController = nil;
-//            }
-//        }
-//        self.km_prefersNavigationBarBackgroundViewHidden = NO;
-//        [self km_viewDidAppear:animated];
-
-
-        self.rainbow_viewDidAppear(animated)
-
+        rainbow_viewDidAppear(animated)
     }
 
     func rainbow_viewWillLayoutSubviews() {
@@ -110,6 +115,12 @@ extension UIViewController {
         rainbow_viewWillLayoutSubviews()
     }
 
+}
+
+
+// MARK: Hepler
+
+extension UIViewController {
 
     func rainbow_resizeTransitionNavigationBarFrame() {
 
@@ -124,66 +135,28 @@ extension UIViewController {
 
         guard let navigationController = navigationController where view.window != nil else { return }
 
-        let bar = UINavigationBar()
+        let navigationBar: UINavigationBar = {
 
-        bar.barStyle = navigationController.navigationBar.barStyle
+            $0.barStyle = navigationController.navigationBar.barStyle
 
-        if (bar.translucent != navigationController.navigationBar.translucent) {
-            bar.translucent = navigationController.navigationBar.translucent
-        }
+            if $0.translucent != navigationController.navigationBar.translucent {
+                $0.translucent = navigationController.navigationBar.translucent
+            }
 
-        bar.barTintColor = navigationController.navigationBar.barTintColor
-        bar.setBackgroundImage(navigationController.navigationBar.backgroundImageForBarMetrics(.Default), forBarMetrics: .Default)
-        bar.shadowImage = navigationController.navigationBar.shadowImage
+            $0.barTintColor = navigationController.navigationBar.barTintColor
+            $0.setBackgroundImage(navigationController.navigationBar.backgroundImageForBarMetrics(.Default), forBarMetrics: .Default)
+            $0.shadowImage = navigationController.navigationBar.shadowImage
+
+            return $0
+        }(UINavigationBar())
 
         rainbow_transitionNavigationBar?.removeFromSuperview()
-        rainbow_transitionNavigationBar = bar
+        rainbow_transitionNavigationBar = navigationBar
 
         rainbow_resizeTransitionNavigationBarFrame()
 
         if !navigationController.navigationBar.hidden && !navigationController.navigationBarHidden {
-            view.addSubview(bar)
+            view.addSubview(navigationBar)
         }
     }
-
 }
-
-final class WeakObjectWrapper<T: AnyObject> {
-    weak var value: T?
-    init(_ v: T) {
-        value = v
-    }
-}
-
-private func wrap<T: AnyObject>(v: T) -> WeakObjectWrapper<T> {
-    return WeakObjectWrapper(v)
-}
-
-private func setAssociatedObject<T: AnyObject>(object: AnyObject, associativeKey: UnsafePointer<Void>, value: T, policy: objc_AssociationPolicy) {
-
-    objc_setAssociatedObject(object, associativeKey, wrap(value),  policy)
-}
-
-private func getAssociatedObject<T: AnyObject>(object: AnyObject, associativeKey: UnsafePointer<Void>) -> T? {
-    return (objc_getAssociatedObject(object, associativeKey) as? WeakObjectWrapper<T>)?.value
-}
-
-
-func exchangeMethods(classType: AnyClass, originalSelector: Selector, swizzledSelector: Selector) {
-
-    let originalMethod = class_getInstanceMethod(classType, originalSelector)
-    let swizzledMethod = class_getInstanceMethod(classType, swizzledSelector)
-
-    let didAddMethod = class_addMethod(classType, originalSelector, method_getImplementation(swizzledMethod), method_getTypeEncoding(swizzledMethod))
-
-    if didAddMethod {
-
-        class_replaceMethod(classType, swizzledSelector, method_getImplementation(originalMethod), method_getTypeEncoding(originalMethod))
-
-    } else {
-
-        method_exchangeImplementations(originalMethod, swizzledMethod)
-    }
-}
-
-

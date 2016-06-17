@@ -8,98 +8,11 @@
 
 import UIKit
 
-extension UIViewController {
-
-    private struct AssociatedKey {
-        static var backgroundViewHidden: UInt8    = 0
-        static var transitionNavigationBar: UInt8 = 0
-    }
-
-    var rabinbow_prefersNavigationBarBackgroundViewHidden: Bool? {
-
-        get {
-            return getAssociatedObject(self, associativeKey: &AssociatedKey.backgroundViewHidden)
-        }
-
-        set {
-            if let value = newValue {
-                setAssociatedObject(self, value: value, associativeKey: &AssociatedKey.backgroundViewHidden, policy: objc_AssociationPolicy.OBJC_ASSOCIATION_RETAIN_NONATOMIC)
-            }
-        }
-    }
-
-    var rabinbow_transitionNavigationBar: UINavigationBar? {
-
-        get {
-            return getAssociatedObject(self, associativeKey: &AssociatedKey.transitionNavigationBar)
-        }
-
-        set {
-            if let value = newValue {
-                setAssociatedObject(self, value: value, associativeKey: &AssociatedKey.transitionNavigationBar, policy: objc_AssociationPolicy.OBJC_ASSOCIATION_RETAIN_NONATOMIC)
-            }
-        }
-    }
-
-    var crate: Crate {
-        get {
-            if let result:Crate = getAssociatedObject(self, associativeKey: &AssociatedKey.transitionNavigationBar) {
-                return result
-            } else {
-                let result = Crate(name: "")
-                self.crate = result
-                return result
-            }
-        }
-
-        set {
-            setAssociatedObject(self, value: newValue, associativeKey: &AssociatedKey.transitionNavigationBar, policy: objc_AssociationPolicy.OBJC_ASSOCIATION_RETAIN_NONATOMIC)
-        }
-    }
-
-}
-
-struct Crate {
-    var name: String
-}
-
-final class Lifted<T> {
-    let value: T
-    init(_ x: T) {
-        value = x
-    }
-}
-
-private func lift<T>(x: T) -> Lifted<T>  {
-    return Lifted(x)
-}
-
-func setAssociatedObject<T>(object: AnyObject, value: T, associativeKey: UnsafePointer<Void>, policy: objc_AssociationPolicy) {
-    if let v: AnyObject = value as? AnyObject {
-        objc_setAssociatedObject(object, associativeKey, v,  policy)
-    }
-    else {
-        objc_setAssociatedObject(object, associativeKey, lift(value),  policy)
-    }
-}
-
-func getAssociatedObject<T>(object: AnyObject, associativeKey: UnsafePointer<Void>) -> T? {
-    if let v = objc_getAssociatedObject(object, associativeKey) as? T {
-        return v
-    }
-    else if let v = objc_getAssociatedObject(object, associativeKey) as? Lifted<T> {
-        return v.value
-    }
-    else {
-        return nil
-    }
-}
-
 class MainViewController: UITableViewController {
 
     // MARK: Constants
 
-    struct Constants {
+    private struct Constants {
         struct Segue {
             static let ShowNextIdentifier = "Show Next"
             static let SetStyleIdentifier = "Set Style"
@@ -108,13 +21,13 @@ class MainViewController: UITableViewController {
 
     // MARK: Properties
 
-    var currentNavigationBarData: NavigationBarData!
-    var nextNavigationBarData: NavigationBarData!
+    private var currentNavigationBarData: NavigationBarData!
+    private var nextNavigationBarData: NavigationBarData!
 
-    @IBOutlet weak var nextNavigationBarTintColorText: UILabel!
-    @IBOutlet weak var nextNavigatioBarBackgroundImageColorText: UILabel!
-    @IBOutlet weak var nextNavigationBarPrefersHiddenSwitch: UISwitch!
-    @IBOutlet weak var nextNavigationBarPrefersShadowImageHiddenSwitch: UISwitch!
+    @IBOutlet private weak var nextNavigationBarTintColorText: UILabel!
+    @IBOutlet private weak var nextNavigatioBarBackgroundImageColorText: UILabel!
+    @IBOutlet private weak var nextNavigationBarPrefersHiddenSwitch: UISwitch!
+    @IBOutlet private weak var nextNavigationBarPrefersShadowImageHiddenSwitch: UISwitch!
 
     // MARK: View Life Cycle
 
@@ -124,16 +37,6 @@ class MainViewController: UITableViewController {
         if currentNavigationBarData == nil {
             currentNavigationBarData = NavigationBarData()
         }
-
-        rabinbow_prefersNavigationBarBackgroundViewHidden = true
-
-//        print(rabinbow_prefersNavigationBarBackgroundViewHidden)
-
-        navigationController?.navigationBar.hidden = true
-
-//        navigationController?.navigationBarHidden = false
-
-        print(navigationController?.navigationBarHidden)
 
         nextNavigationBarData = currentNavigationBarData
 
@@ -154,21 +57,25 @@ class MainViewController: UITableViewController {
         navigationController?.setNavigationBarHidden(currentNavigationBarData.prefersHidden, animated: animated)
     }
 
+    deinit {
+        print("Deinit")
+    }
+
 }
 
 // MARK: - Target Action
 
 extension MainViewController {
 
-    @IBAction func nextNavigationBarPrefersShadowImageHidden(sender: UISwitch) {
+    @IBAction private func nextNavigationBarPrefersShadowImageHidden(sender: UISwitch) {
         nextNavigationBarData.prefersShadowImageHidden = sender.on
     }
 
-    @IBAction func nextNavigationBarPrefersHidden(sender: UISwitch) {
+    @IBAction private func nextNavigationBarPrefersHidden(sender: UISwitch) {
         nextNavigationBarData.prefersHidden = sender.on
     }
 
-    @IBAction func navigationBarTranslucent(sender: UISwitch) {
+    @IBAction private func navigationBarTranslucent(sender: UISwitch) {
         navigationController?.navigationBar.translucent = sender.on
     }
 
@@ -203,52 +110,58 @@ extension  MainViewController {
 extension MainViewController {
 
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
-        if let identifier = segue.identifier {
-            switch identifier {
-            case Constants.Segue.SetStyleIdentifier:
-                guard let settingsViewController = segue.destinationViewController as? SettingsViewController else {
-                    return
-                }
-                guard let selectedIndexPath = tableView.indexPathForSelectedRow else {
-                    return
-                }
 
-                var colorsArray = [NavigationBarBackgroundViewColor]()
-                var selectedIndex: Int?
-                var block: ((color: NavigationBarBackgroundViewColor) -> Void)?
+        guard let identifier = segue.identifier else { return }
 
-                switch (selectedIndexPath.section, selectedIndexPath.row) {
-                case (0, 0):
-                    colorsArray = NavigationBarData.BarTintColorArray
-                    selectedIndex = colorsArray.indexOf(NavigationBarBackgroundViewColor(rawValue: nextNavigationBarTintColorText.text!)!)
-                    block = {
-                        self.nextNavigationBarData.barTintColor = $0
-                        self.nextNavigationBarTintColorText.text = $0.rawValue
-                    }
-                case (0, 1):
-                    colorsArray = NavigationBarData.BackgroundImageColorArray
-                    selectedIndex = colorsArray.indexOf(NavigationBarBackgroundViewColor(rawValue: nextNavigatioBarBackgroundImageColorText.text!)!)
-                    block = {
-                        self.nextNavigationBarData.backgroundImageColor = $0
-                        self.nextNavigatioBarBackgroundImageColorText.text = $0.rawValue
-                    }
-                default:
-                    break
-                }
-                settingsViewController.colorsData = (colorsArray, selectedIndex)
-                settingsViewController.configurationBlock = block
-                settingsViewController.titleText = tableView.cellForRowAtIndexPath(selectedIndexPath)?.textLabel?.text ?? ""
+        switch identifier {
 
-            case Constants.Segue.ShowNextIdentifier:
-                guard let viewController = segue.destinationViewController as? MainViewController else {
-                    return
+        case Constants.Segue.SetStyleIdentifier:
+
+            guard let settingsViewController = segue.destinationViewController as? SettingsViewController else {
+                return
+            }
+
+            guard let selectedIndexPath = tableView.indexPathForSelectedRow else {
+                return
+            }
+
+            var colorsArray = [NavigationBarBackgroundViewColor]()
+            var selectedIndex: Int?
+            var block: ((color: NavigationBarBackgroundViewColor) -> Void)?
+
+            switch (selectedIndexPath.section, selectedIndexPath.row) {
+            case (0, 0):
+                colorsArray = NavigationBarData.BarTintColorArray
+                selectedIndex = colorsArray.indexOf(NavigationBarBackgroundViewColor(rawValue: nextNavigationBarTintColorText.text!)!)
+                block = {
+                    self.nextNavigationBarData.barTintColor = $0
+                    self.nextNavigationBarTintColorText.text = $0.rawValue
                 }
-                viewController.currentNavigationBarData = nextNavigationBarData
-                break
+            case (0, 1):
+                colorsArray = NavigationBarData.BackgroundImageColorArray
+                selectedIndex = colorsArray.indexOf(NavigationBarBackgroundViewColor(rawValue: nextNavigatioBarBackgroundImageColorText.text!)!)
+                block = {
+                    self.nextNavigationBarData.backgroundImageColor = $0
+                    self.nextNavigatioBarBackgroundImageColorText.text = $0.rawValue
+                }
             default:
                 break
             }
+            settingsViewController.colorsData = (colorsArray, selectedIndex)
+            settingsViewController.configurationBlock = block
+            settingsViewController.titleText = tableView.cellForRowAtIndexPath(selectedIndexPath)?.textLabel?.text ?? ""
+
+        case Constants.Segue.ShowNextIdentifier:
+            guard let viewController = segue.destinationViewController as? MainViewController else {
+                return
+            }
+            viewController.currentNavigationBarData = nextNavigationBarData
+            break
+
+        default:
+            break
         }
+
     }
 
 }

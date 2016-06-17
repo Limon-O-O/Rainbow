@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		ED2E16E41D12EC360036098A /* UINavigationController+Rainbow.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED2E16E31D12EC360036098A /* UINavigationController+Rainbow.swift */; };
+		ED31C22D1D13D35E00A046E8 /* Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED31C22C1D13D35E00A046E8 /* Utilities.swift */; };
 		EDCE06ED1D12A4E200A1D860 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDCE06EC1D12A4E200A1D860 /* AppDelegate.swift */; };
 		EDCE06EF1D12A4E200A1D860 /* MainViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDCE06EE1D12A4E200A1D860 /* MainViewController.swift */; };
 		EDCE06F21D12A4E200A1D860 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = EDCE06F01D12A4E200A1D860 /* Main.storyboard */; };
@@ -21,6 +22,7 @@
 		EDCE07191D12A8C200A1D860 /* NavigationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDCE07171D12A8C200A1D860 /* NavigationController.swift */; };
 		EDCE071A1D12A8C200A1D860 /* SettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDCE07181D12A8C200A1D860 /* SettingsViewController.swift */; };
 		EDCE071C1D12A98C00A1D860 /* UIViewController+Rainbow.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDCE071B1D12A98C00A1D860 /* UIViewController+Rainbow.swift */; };
+		EDCE07201D13A5E400A1D860 /* WeakObjectWrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDCE071F1D13A5E400A1D860 /* WeakObjectWrapper.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -49,6 +51,7 @@
 
 /* Begin PBXFileReference section */
 		ED2E16E31D12EC360036098A /* UINavigationController+Rainbow.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UINavigationController+Rainbow.swift"; sourceTree = "<group>"; };
+		ED31C22C1D13D35E00A046E8 /* Utilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Utilities.swift; sourceTree = "<group>"; };
 		EDCE06E91D12A4E200A1D860 /* Rainy.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Rainy.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		EDCE06EC1D12A4E200A1D860 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		EDCE06EE1D12A4E200A1D860 /* MainViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainViewController.swift; sourceTree = "<group>"; };
@@ -64,6 +67,7 @@
 		EDCE07171D12A8C200A1D860 /* NavigationController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NavigationController.swift; sourceTree = "<group>"; };
 		EDCE07181D12A8C200A1D860 /* SettingsViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SettingsViewController.swift; sourceTree = "<group>"; };
 		EDCE071B1D12A98C00A1D860 /* UIViewController+Rainbow.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UIViewController+Rainbow.swift"; sourceTree = "<group>"; };
+		EDCE071F1D13A5E400A1D860 /* WeakObjectWrapper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WeakObjectWrapper.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -122,6 +126,8 @@
 			isa = PBXGroup;
 			children = (
 				EDCE07051D12A5BF00A1D860 /* Rainbow.h */,
+				ED31C22C1D13D35E00A046E8 /* Utilities.swift */,
+				EDCE071F1D13A5E400A1D860 /* WeakObjectWrapper.swift */,
 				ED2E16E31D12EC360036098A /* UINavigationController+Rainbow.swift */,
 				EDCE071B1D12A98C00A1D860 /* UIViewController+Rainbow.swift */,
 				EDCE07071D12A5BF00A1D860 /* Info.plist */,
@@ -282,6 +288,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				ED2E16E41D12EC360036098A /* UINavigationController+Rainbow.swift in Sources */,
+				EDCE07201D13A5E400A1D860 /* WeakObjectWrapper.swift in Sources */,
+				ED31C22D1D13D35E00A046E8 /* Utilities.swift in Sources */,
 				EDCE071C1D12A98C00A1D860 /* UIViewController+Rainbow.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
